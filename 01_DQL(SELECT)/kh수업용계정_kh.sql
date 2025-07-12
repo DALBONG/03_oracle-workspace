@@ -86,8 +86,20 @@ FROM EMPLOYEE
 ORDER BY "근무일수1" DESC, "근무일수2" DESC;
 
 --18. EMPLOYEE테이블에서 사번이 홀수인 직원들의 정보 모두 조회
+SELECT *
+FROM EMPLOYEE
+WHERE SUBSTR(EMP_ID, 3, 1) IN (1, 3, 5, 7, 9);
+
 --19. EMPLOYEE테이블에서 근무 년수가 20년 이상인 직원 정보 조회
+SELECT *
+FROM EMPLOYEE
+WHERE FLOOR(MONTHS_BETWEEN(SYSDATE, HIRE_DATE)) >= 240;
+
 --20. EMPLOYEE 테이블에서 사원명, 급여 조회 (단, 급여는 '\9,000,000' 형식으로 표시)
+SELECT EMP_NAME, SALARY
+FROM EMPLOYEE
+WHERE 
+
 --21. EMPLOYEE테이블에서 직원 명, 부서코드, 생년월일, 나이(만) 조회
 -- (단, 생년월일은 주민번호에서 추출해서 00년 00월 00일로 출력되게 하며
 -- 나이는 주민번호에서 출력해서 날짜데이터로 변환한 다음 계산)
