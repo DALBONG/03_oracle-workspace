@@ -96,17 +96,75 @@ FROM EMPLOYEE
 WHERE FLOOR(MONTHS_BETWEEN(SYSDATE, HIRE_DATE)) >= 240;
 
 --20. EMPLOYEE 테이블에서 사원명, 급여 조회 (단, 급여는 '\9,000,000' 형식으로 표시)
-SELECT EMP_NAME, SALARY
-FROM EMPLOYEE
-WHERE 
+SELECT EMP_NAME, TO_CHAR(SALARY, '999,999,999') "급여"
+FROM EMPLOYEE;
 
 --21. EMPLOYEE테이블에서 직원 명, 부서코드, 생년월일, 나이(만) 조회
 -- (단, 생년월일은 주민번호에서 추출해서 00년 00월 00일로 출력되게 하며
 -- 나이는 주민번호에서 출력해서 날짜데이터로 변환한 다음 계산)
+SELECT EMP_NAME, DEPT_CODE,  TO_DATE (SUBSTR(EMP_NO, 1, 6), 'RRMMDD') AS "생년월일", 
+        TO_CHAR(SYSDATE, 'RRRR') - TO_CHAR(TO_DATE(SUBSTR(EMP_NO, 1, 6)), 'RRRR') "나이(만)" 
+FROM EMPLOYEE;
+
 --22. EMPLOYEE테이블에서 부서코드가 D5, D6, D9인 사원만 조회하되 D5면 총무부, D6면 기획부, D9면 영업부로 처리
 -- (단, 부서코드 오름차순으로 정렬)
+SELECT EMP_NAME, /*DEPT_CODE ||*/ DECODE(DEPT_CODE, 'D5', '총무부', 'D6', '기획부', 'D9', '영업부') "부서명"
+FROM EMPLOYEE
+WHERE DEPT_CODE IN ('D6', 'D5', 'D9')
+ORDER BY DEPT_CODE ASC;
+
+
 --23. EMPLOYEE테이블에서 사번이 201번인 사원명, 주민번호 앞자리, 주민번호 뒷자리, 
 -- 주민번호 앞자리와 뒷자리의 합 조회
+SELECT EMP_NAME, SUBSTR(EMP_NO, 1, 6) "주민 앞", SUBSTR(EMP_NO, 8, 14) "주민 뒤", TO_NUMBER(SUBSTR(EMP_NO, 1, 6)) + TO_NUMBER(SUBSTR(EMP_NO, 8, 14)) "앞 뒷 자리 합"
+FROM EMPLOYEE
+WHERE EMP_ID = 201;
+
 --24. EMPLOYEE테이블에서 부서코드가 D5인 직원의 보너스 포함 연봉 합 조회
+SELECT SUM((SALARY+SALARY*NVL(BONUS, 0))*12) "D5 직원 연봉 합"
+FROM EMPLOYEE
+WHERE DEPT_CODE = 'D5';
+
 --25. EMPLOYEE테이블에서 직원들의 입사일로부터 년도만 가지고 각 년도별 입사 인원수 조회
 -- 전체 직원 수, 2001년, 2002년, 2003년, 2004년
+SELECT * --EMP_NAME, HIRE_DATE, EXTRACT(YEAR FROM HIRE_DATE)
+FROM EMPLOYEE
+WHERE EXTRACT(YEAR FROM HIRE_DATE) IN (2001, 2002, 2003, 2004);
+
+--==============================================================
+--==============================================================
+--==============================================================
+ -- 추가문제
+-- EMPLOYEE 테이블에서 직원들의 평균 급여를 구하세요.
+SELECT FLOOR(AVG(SALARY)) "평균 급여"
+FROM EMPLOYEE;
+
+-- EMPLOYEE 테이블에서 직원 이름을 기준으로 오름차순 정렬해 조회하세요.
+SELECT *
+FROM EMPLOYEE
+ORDER BY EMP_NAME ASC;
+
+-- EMPLOYEE 테이블에서 커미션이 NULL인 직원 수를 구하세요.
+-- EMPLOYEE 테이블에서 급여가 3000 이상인 직원의 이름과 부서번호를 조회하세요.
+-- EMPLOYEE 테이블에서 급여를 기준으로 내림차순 정렬해 직원 이름과 급여를 조회하세요.
+-- EMPLOYEE 테이블에서 가장 높은 급여를 받는 직원의 이름과 급여를 출력하세요.
+-- EMPLOYEE 테이블에서 커미션이 NULL이 아닌 직원의 이름과 커미션을 조회하세요.
+-- EMPLOYEE 테이블에서 부서번호 오름차순, 급여 내림차순으로 직원 정보를 조회하세요.
+-- EMPLOYEE 테이블에서 부서별 최대, 최소, 평균 급여를 조회하세요.
+-- EMPLOYEE 테이블에서 부서번호가 10 또는 20이고 급여가 2500 이상인 직원의 이름, 직무, 급여를 조회하세요.
+-- EMPLOYEE 테이블에서 커미션을 내림차순으로 정렬하고, 커미션이 같으면 급여를 오름차순으로 정렬해 조회하세요.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
