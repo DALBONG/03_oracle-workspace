@@ -56,25 +56,33 @@ SELECT PCODE "구매 상품 코드", NAME "이름", AGE "나이"
  ORDER BY 나이 ASC;
 
 --B-2. 나이가 가장 많은 고객이 상품을 구매한 횟수를 조회하세요.-서브쿼리 사용하기 (김승한)  
-SELECT COUNT(PCODE), MAX(AGE)
+SELECT COUNT(QUANTITY), MAX(AGE)
   FROM TBL_BUY B, TBL_CUSTOM C
  WHERE B.CUSTOMID = C.CUSTOM_ID
- GROUP BY PCODE;
- 
- SELECT MAX(AGE)
- FROM TBL_CUSTOM;
+   AND AGE = (SELECT MAX(AGE)
+                FROM TBL_CUSTOM);
+                
 --B-3. 2023년 하반기 구매금액을 고객ID별로 조회하시오. 금액이 높은 순서부터 조회하세요. (노희영)
-
-
-
+SELECT BUY_DATE, CUSTOMID, PRICE
+  FROM TBL_BUY B, TBL_PRODUCT P
+ WHERE B.PCODE = P.PCODE
+   AND BUY_DATE BETWEEN '23/06/01' AND '24/01/01'
+ ORDER BY PRICE DESC;
 
 --B-4. 2024년에 구매횟수가 1회 이상인 고객id, 고객이름, 나이,이메일을 조회하세요.(이재훈)
-
+SELECT CUSTOMID, NAME, AGE, EMAIL
+FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+WHERE B.CUSTOMID = C.CUSTOM_ID
+  AND B.PCODE = P.PCODE
+  AND BUY_DATE >= '24/01/01'
+  AND QUANTITY >= 1;
 
 --B-5. 고객별-상품별 구매금액을 조회하세요. 정렬도 고객ID,상품코드 오름차순으로 정렬하세요.(이예진)
-
-
-
+SELECT NAME, PNAME, PRICE, CUSTOMID, P.PCODE
+FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+WHERE B.CUSTOMID = C.CUSTOM_ID
+  AND B.PCODE = P.PCODE
+ORDER BY CUSTOMID ASC, P.PCODE;
 
 /* C조 */
 --C-1. 가격 1만원 이상의 상품에 대해 각각 고객들이 구매한 평균 개수를 출력하시오.상품코드 순서로 정렬 (임현범)
