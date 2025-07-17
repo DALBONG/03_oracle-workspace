@@ -112,5 +112,17 @@ SELECT COUNT(PCODE), MAX(AGE)
 
 
 
+-- 홍길동씨는 제주도에 거주합니다. 모든 품목 제주, 산간 지방은 주문후 10일 후에 배송되었다 했을때,
+ -- 홍길동씨가 주문한 물품들을 배송받은 날짜, 물품명을 찾아보시라.(2점).
+ -- 단, 년도 제외 '-월 -일'로 나올 수 있게한다.
+ 
+SELECT EXTRACT(MONTH FROM(BUY_DATE + 10)) ||'월'|| EXTRACT(DAY FROM(BUY_DATE + 10))||'일' "배송날짜", PNAME "물품명"
+FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+WHERE B.CUSTOMID = C.CUSTOM_ID
+  AND B.PCODE = P.PCODE
+  AND NAME = '홍길동';
+  
+  
+-- 년도별 각 물품의 총 매출을 구하고, 전체 효자 물품과 전체 최저 물품의 금액 차이를 구하시오
 
 
