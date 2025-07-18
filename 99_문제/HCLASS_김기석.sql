@@ -66,8 +66,11 @@ SELECT COUNT(QUANTITY), MAX(AGE)
 SELECT BUY_DATE, CUSTOMID, PRICE
   FROM TBL_BUY B, TBL_PRODUCT P
  WHERE B.PCODE = P.PCODE
-   AND BUY_DATE BETWEEN '23/06/01' AND '24/01/01'
+   AND BUY_DATE BETWEEN '23/06/01' AND '23/12/31'
  ORDER BY PRICE DESC;
+ 
+ SELECT *
+ FROM TBL_BUY;
 
 --B-4. 2024년에 구매횟수가 1회 이상인 고객id, 고객이름, 나이,이메일을 조회하세요.(이재훈)
 SELECT CUSTOMID, NAME, AGE, EMAIL
@@ -86,51 +89,77 @@ ORDER BY CUSTOMID ASC, P.PCODE;
 
 /* C조 */
 --C-1. 가격 1만원 이상의 상품에 대해 각각 고객들이 구매한 평균 개수를 출력하시오.상품코드 순서로 정렬 (임현범)
-
+SELECT B.PCODE, ROUND(AVG(QUANTITY))||'개' "구매 평균 갯수"
+FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+WHERE B.CUSTOMID = C.CUSTOM_ID
+  AND B.PCODE = P.PCODE
+  AND PRICE >= 10000
+GROUP BY B.PCODE
+ORDER BY B.PCODE ASC;
 	 
 --C-2. 진라면을 구매한 고객의 이름, 구매수량, 구매날짜를 조회하자. (출제자 : 전예진)
-
+SELECT NAME, QUANTITY, BUY_DATE
+  FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+ WHERE B.CUSTOMID = C.CUSTOM_ID
+   AND B.PCODE = P.PCODE
+   AND B.PCODE LIKE '%JIN%';
 
 --C-4. 2023년에 팔린 상품의 이름과 코드, 총 판매액 그리고 총 판매개수를 상품코드 순서로 정렬하여 조회하시오. (정제원)
-
+SELECT PNAME, B.PCODE, SUM(PRICE), SUM(QUANTITY)
+  FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+ WHERE B.CUSTOMID = C.CUSTOM_ID
+   AND B.PCODE = P.PCODE
+   AND EXTRACT (YEAR FROM BUY_DATE) = 2023
+ GROUP BY PNAME, B.PCODE;
 
 --C-5. 'twice'와 'hongGD'는 한집에 살고 있습니다. 이들이 구매한 상품,수량,가격을 조회하세요.-가격이 높은순서부터 정렬 (장성우)
-
+SELECT PNAME, QUANTITY, PRICE
+FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+ WHERE B.CUSTOMID = C.CUSTOM_ID
+   AND B.PCODE = P.PCODE
+   AND CUSTOMID IN ('twice', 'hongGD');
 
 
 /* D조 */
 --D-1. 진라면을 가장 많이 구매한 회원을 구매금액이 높은 순으로 회원아이디와 총 진라면 구매금액을 보여주세요.(조하연)
 -- ㄴ 서브쿼리 없이 조인만 사용
-
-
+SELECT CUSTOMID, (PRICE * QUANTITY) "총 진라면 구매금액"
+  FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+ WHERE B.CUSTOMID = C.CUSTOM_ID
+   AND B.PCODE = P.PCODE
+   AND PNAME LIKE '%진라면%'
+ ORDER BY (PRICE * QUANTITY) DESC;
  
---D-2. 판매 갯수가 가장 많은 순서로 상품 을 정렬하고 총 팔린 금액을 출력하시오.(한진만)
+--D-2. 판매 갯수가 가장 많은 순서로 상품을 정렬하고 총 팔린 금액을 출력하시오.(한진만)
 -- 	   판매 개수가 같으면 상품 코드 순서로 정렬합니다.			ㄴ 동등 조인으로 조회
-
-
-
+SELECT B.PCODE, PNAME ||' '|| QUANTITY ||'개' "인기 상품" , PRICE, (QUANTITY*PRICE) "총 판매 금액"  
+  FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+ WHERE B.CUSTOMID = C.CUSTOM_ID
+   AND B.PCODE = P.PCODE
+ ORDER BY B.QUANTITY DESC, B.PCODE DESC;
 
 --D-3. 진라면을 구매한 고객들의 평균 나이를 제품코드(PCODE)와 함께출력해 주세요.(황병훈)
+SELECT B.PCODE, AVG(AGE) "평균나이" --, ROUND(AVG(AGE))
+  FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+ WHERE B.CUSTOMID = C.CUSTOM_ID
+   AND B.PCODE = P.PCODE
+   AND PNAME LIKE '%진라면%'
+   GROUP BY B.PCODE;
 
 
 --D-4. 30세 미만 회원별 구매금액을 구하고 회원으로 그룹바이해서 구매금액 합계가 큰 순으로 정렬(조지수)
 -- 						ㄴ 3개의 테이블 조인
 
+SELECT AGE, SUM(PRICE)
+  FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+ WHERE B.CUSTOMID = C.CUSTOM_ID
+   AND B.PCODE = P.PCODE
+ HAVING AGE < 30
+ GROUP BY AGE
+ ORDER BY SUM(PRICE) DESC;
 
 
 
 
--- 홍길동씨는 제주도에 거주합니다. 모든 품목 제주, 산간 지방은 주문후 10일 후에 배송되었다 했을때,
- -- 홍길동씨가 주문한 물품들을 배송받은 날짜, 물품명을 찾아보시라.(2점).
- -- 단, 년도 제외 '-월 -일'로 나올 수 있게한다.
- 
-SELECT EXTRACT(MONTH FROM(BUY_DATE + 10)) ||'월'|| EXTRACT(DAY FROM(BUY_DATE + 10))||'일' "배송날짜", PNAME "물품명"
-FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
-WHERE B.CUSTOMID = C.CUSTOM_ID
-  AND B.PCODE = P.PCODE
-  AND NAME = '홍길동';
-  
-  
--- 년도별 각 물품의 총 매출을 구하고, 전체 효자 물품과 전체 최저 물품의 금액 차이를 구하시오
 
 
