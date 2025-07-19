@@ -283,9 +283,22 @@ SELECT 상품명, 구매자, 구매일
 
 -- 다현님
 --1. 24년도 이전에 가입한 고객들 중 총구매수량이 가장 높은 고객의 
-  -- 이름, 이메일, 총구매가격, 총구매수량을 출력하세요.							
+  -- 이름, 이메일, 총구매가격, 총구매수량을 출력하세요.
+SELECT NAME, EMAIL, 총_구매가격, 총_구매_수량
+  FROM (SELECT NAME, EMAIL, SUM(PRICE) "총_구매가격",SUM(QUANTITY) "총_구매_수량", RANK() OVER(ORDER BY SUM(QUANTITY) DESC) "총_구매_순위" 
+          FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+         WHERE B.CUSTOMID = C.CUSTOM_ID
+           AND B.PCODE = P.PCODE
+           AND REG_DATE < '2024/01/01'
+         GROUP BY NAME, EMAIL)
+ WHERE 총_구매_순위 = 1;
+  
 --2. 고객별 총구매수량이 높은 순서대로 순위 이름, 나이, 총구매수량, 총구매가격을 출력하세요.
     --(동일값 중복순위 부여 후 다음순위는 중복순위와 상관없이 순차적으로 순위 부여) 
+SELECT NAME, AGE, 
+    
+    
+    
 
 -- 세민님
 --1. 제품 코드에 N가 들어가는 상품을 분류하고 이 제품을 산 사람들과 제품 개수를 나열해주세요.(제품명, 고객명, 제품개수 순서)							
