@@ -127,13 +127,10 @@ FROM EMP
 WHERE COMM IS NULL;
 
 --EMP 테이블에서 급여가 가장 높은 직원의 급여와 이름(ENAME)을 출력하세요.
-SELECT MAX(SAL), ENAME
-FROM EMP;
--- 그룹함수와, 어떻게 같이..?
---
---
---
---
+SELECT ENAME, 최고급여
+FROM (SELECT RANK() OVER (ORDER BY SAL DESC)"순위", SAL "최고급여", ENAME
+        FROM EMP)
+ WHERE 순위 = 1;
 
 --EMP 테이블에서 부서번호가 10 또는 30이면서 급여가 1500 이상인 직원들의 이름, 직무, 급여를 조회하세요.
 SELECT ENAME, JOB, SAL, DEPTNO
@@ -163,12 +160,6 @@ ORDER BY SAL DESC;
 SELECT DEPTNO, SAL
 FROM EMP
 ORDER BY DEPTNO ASC, SAL DESC;
--- 두 조건 따로는 어떻게..?
---
---
---
---
---
 
 --EMP 테이블에서 커미션(COMM)을 내림차순으로 정렬하고, 커미션이 같은 경우 급여를 오름차순으로 정렬해 조회하세요.
 SELECT *
