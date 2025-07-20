@@ -298,4 +298,76 @@ SELECT DEPARTMENT_NAME "학과이름", STUDENT_NAME "학생이름", PROFESSOR_NAME "지도
    AND S.COACH_PROFESSOR_NO = P.PROFESSOR_NO
    AND STUDENT_NO = 'A313047';
    
+-- 12. 2007 년도에 '인갂관계롞' 과목을 수강핚 학생을 찾아 학생이름과 수강학기름 표시하는 SQL 문장을 작성하시오.
+SELECT STUDENT_NAME "학생이름", TERM_NO "수강학기"
+  FROM TB_CLASS C, TB_STUDENT S, TB_GRADE G, TB_DEPARTMENT D
+ WHERE D.DEPARTMENT_NO = S.DEPARTMENT_NO
+   AND S.STUDENT_NO = G.STUDENT_NO
+   AND G.CLASS_NO = C.CLASS_NO
+   AND TERM_NO LIKE '2007%'
+   AND CLASS_NAME LIKE '인간관계론';
    
+-- 13. 예체능 계열 과목 중 과목 담당교수를 핚 명도 배정받지 못핚 과목을 찾아 그 과목 이름과 학과 이름을 출력하는 SQL 문장을 작성하시오.
+SELECT CLASS_NAME, DEPARTMENT_NAME 
+  FROM TB_DEPARTMENT D, TB_CLASS C, TB_CLASS_PROFESSOR CP 
+ WHERE D.DEPARTMENT_NO = C.DEPARTMENT_NO
+   AND C.CLASS_NO = CP.CLASS_NO
+   AND CATEGORY LIKE '%예체능%';
+   
+-- 14. 춘 기술대학교 서반아어학과 학생들의 지도교수를 게시하고자 핚다. 학생이름과 지도교수 이름을 찾고 
+   -- 맊일 지도 교수가 없는 학생일 경우 "지도교수 미지정?으로 표시하도록 하는 SQL 문을 작성하시오. 
+   -- 단, 출력헤더는 ?학생이름?, ?지도교수?로 표시하며 고학번 학생이 먼저 표시되도록 핚다
+SELECT 학생이름, 지도교수
+  FROM (SELECT STUDENT_NO, STUDENT_NAME "학생이름", PROFESSOR_NAME "지도교수"
+          FROM TB_DEPARTMENT D, TB_STUDENT S, TB_PROFESSOR P
+         WHERE D.DEPARTMENT_NO = S.DEPARTMENT_NO
+           AND S.COACH_PROFESSOR_NO = P.PROFESSOR_NO
+           AND DEPARTMENT_NAME LIKE '%서반아어%'
+         UNION ALL
+        SELECT STUDENT_NO, STUDENT_NAME "학생이름", NVL(COACH_PROFESSOR_NO, '지도교수 미지정')
+          FROM TB_DEPARTMENT D, TB_STUDENT S, TB_PROFESSOR P
+         WHERE D.DEPARTMENT_NO = S.DEPARTMENT_NO
+           AND S.COACH_PROFESSOR_NO = P.PROFESSOR_NO(+)
+           AND COACH_PROFESSOR_NO IS NULL
+           AND DEPARTMENT_NAME LIKE '%서반아어%')
+    ORDER BY STUDENT_NO ASC;
+    
+--  15. 휴학생이 아닌 학생 중 평점이 4.0 이상인 학생을 찾아 그 학생의 학번, 이름, 학과 이름, 평점을 출력하는 SQL 문을 작성하시오.
+SELECT G.STUDENT_NO, STUDENT_NAME, DEPARTMENT_NAME, AVG(POINT)
+  FROM TB_STUDENT S, TB_DEPARTMENT D, TB_GRADE G
+ WHERE D.DEPARTMENT_NO = S.DEPARTMENT_NO
+   AND S.STUDENT_NO = G.STUDENT_NO
+   AND ABSENCE_YN = 'N'
+HAVING AVG(POINT) >= 4
+ GROUP BY G.STUDENT_NO, STUDENT_NAME, DEPARTMENT_NAME;
+   
+-- 16. 홖경조경학과 젂공과목들의 과목 별 평점을 파악핛 수 있는 SQL 문을 작성하시오.
+SELECT C.CLASS_NO, CLASS_NAME, AVG(POINT)
+  FROM TB_DEPARTMENT D, TB_CLASS C, TB_GRADE G
+ WHERE D.DEPARTMENT_NO = C.DEPARTMENT_NO
+   AND C.CLASS_NO = G.CLASS_NO
+   AND DEPARTMENT_NAME = '환경조경학과'
+ GROUP BY C.CLASS_NO, CLASS_NAME;
+ 
+-- 17. 춘 기술대학교에 다니고 있는 최경희 학생과 같은 과 학생들의 이름과 주소를 출력하는 SQL 문을 작성하시오.
+SELECT STUDENT_NAME, STUDENT_ADDRESS
+  FROM TB_DEPARTMENT D, TB_STUDENT S 
+ WHERE D.DEPARTMENT_NO = S.DEPARTMENT_NO
+   AND DEPARTMENT_NAME = (SELECT DEPARTMENT_NAME
+                            FROM TB_DEPARTMENT D, TB_STUDENT S 
+                           WHERE D.DEPARTMENT_NO = S.DEPARTMENT_NO
+                             AND STUDENT_NAME = '최경희');
+    
+-- 18. 국어국문학과에서 총 평점이 가장 높은 학생의 이름과 학번을 표시하는 SQL 문을 작성하시오.
+SELECT STUDENT_NAME, STUDENT_NO
+  FROM (SELECT STUDENT_NAME, G.STUDENT_NO, AVG(POINT), RANK() OVER (ORDER BY AVG(POINT) DESC) "평점순위"
+          FROM TB_DEPARTMENT D, TB_STUDENT S, TB_GRADE G
+         WHERE D.DEPARTMENT_NO = S.DEPARTMENT_NO 
+           AND S.STUDENT_NO = G.STUDENT_NO
+           AND DEPARTMENT_NAME LIKE '%국어국문학%'
+         GROUP BY STUDENT_NAME, G.STUDENT_NO)
+ WHERE 평점순위 = 1;
+ 
+
+-- 19. 춘 기술대학교의 "홖경조경학과"가 속핚 같은 계열 학과들의 학과 별 젂공과목 평점을 파악하기 위핚 적젃핚 SQL 문을 찾아내시오. 
+    -- 단, 출력헤더는 "계열 학과명", "젂공평점"으로 표시되도록 하고, 평점은 소수점 핚 자리까지맊 반올림하여 표시되도록 핚다.

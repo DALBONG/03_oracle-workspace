@@ -106,7 +106,66 @@ WHERE 손실액_순위 IN (1, 2);
 
 --2. "가입일(1일부터 시작)로부터 연간 평균 구매 금액이 가장 낮은 고객 중 1명의 
     --'이름'과 연 평균 구매 금액이 (공동)1등이 되기 위해 '구매해야할 금액'을 출력하세요."	
-    
+        -- 김미나 72500 / 이세영 174000 / -- 김루미 270000
+SELECT NAME, QUANTITY*PRICE "연간_구매_금액", RANK() OVER (ORDER BY QUANTITY*PRICE DESC) "구매 순위"
+  FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+ WHERE B.CUSTOMID = C.CUSTOM_ID
+   AND B.PCODE = P.PCODE
+   AND MONTHS_BETWEEN(BUY_DATE, REG_DATE) <= 12; 
+   
+SELECT NAME, 연간_구매_금액 "1위_금액"
+  FROM (SELECT NAME, QUANTITY*PRICE "연간_구매_금액", RANK() OVER (ORDER BY QUANTITY*PRICE DESC) "구매_순위"
+          FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+         WHERE B.CUSTOMID = C.CUSTOM_ID
+           AND B.PCODE = P.PCODE
+           AND MONTHS_BETWEEN(BUY_DATE, REG_DATE) <= 12)
+ WHERE 구매_순위 = 1
+UNION ALL
+SELECT NAME, 연간_구매_금액 "최저_금액"
+  FROM (SELECT NAME, QUANTITY*PRICE "연간_구매_금액", RANK() OVER (ORDER BY QUANTITY*PRICE DESC) "구매_순위"
+          FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+         WHERE B.CUSTOMID = C.CUSTOM_ID
+           AND B.PCODE = P.PCODE
+           AND MONTHS_BETWEEN(BUY_DATE, REG_DATE) <= 12)
+ WHERE 구매_순위 = 3;
+ 
+/* 
+SELECT NAME, 1위_금액 - 최저_금액
+  FROM (SELECT NAME, 연간_구매_금액 "1위_금액"
+          FROM (SELECT NAME, QUANTITY*PRICE "연간_구매_금액", RANK() OVER (ORDER BY QUANTITY*PRICE DESC) "구매_순위"
+                  FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+                 WHERE B.CUSTOMID = C.CUSTOM_ID
+                   AND B.PCODE = P.PCODE
+                   AND MONTHS_BETWEEN(BUY_DATE, REG_DATE) <= 12)
+ WHERE 구매_순위 = 1
+UNION ALL
+SELECT NAME, 연간_구매_금액 "최저_금액"
+  FROM (SELECT NAME, QUANTITY*PRICE "연간_구매_금액", RANK() OVER (ORDER BY QUANTITY*PRICE DESC) "구매_순위"
+          FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+         WHERE B.CUSTOMID = C.CUSTOM_ID
+           AND B.PCODE = P.PCODE
+           AND MONTHS_BETWEEN(BUY_DATE, REG_DATE) <= 12)
+ WHERE 구매_순위 = 3);
+*/
+
+/*
+SELECT NAME, 1위_금액 - 최저_금액
+  FROM (SELECT NAME, 연간_구매_금액 "1위_금액"
+          FROM (SELECT NAME, QUANTITY*PRICE "연간_구매_금액", RANK() OVER (ORDER BY QUANTITY*PRICE DESC) "구매_순위"
+                  FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+                 WHERE B.CUSTOMID = C.CUSTOM_ID
+                   AND B.PCODE = P.PCODE
+                   AND MONTHS_BETWEEN(BUY_DATE, REG_DATE) <= 12)
+         WHERE 구매_순위 = 1)
+  ,(SELECT NAME, 연간_구매_금액 "최저_금액"
+      FROM (SELECT NAME, QUANTITY*PRICE "연간_구매_금액", RANK() OVER (ORDER BY QUANTITY*PRICE DESC) "구매_순위"
+              FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+             WHERE B.CUSTOMID = C.CUSTOM_ID
+               AND B.PCODE = P.PCODE
+               AND MONTHS_BETWEEN(BUY_DATE, REG_DATE) <= 12)
+     WHERE 구매_순위 = 3);
+*/
+ 
   
 -- 찬형이    
 --1. 23년에 상품을 산 사람들 이름과 각각의 상품과 개수를 출력
@@ -181,7 +240,17 @@ SELECT AVG(AGE)
 -- 수용님
 --1. TBL_BUY 테이블에서 2024년 1월 1일 이후에 구매한 고객 중. 구매 수량 총합이 3개 이상인 고객의 
     -- CUSTOMID, 고객 이름(NAME), 해당 고객이 구매한 상품 종류 수(중복 없는 상품 개수)를 출력하시오. 
-    -- (단, 구매 수량 총합 내림차순으로 정렬할 것)"					
+    -- (단, 구매 수량 총합 내림차순으로 정렬할 것)"	  	
+SELECT NAME, SUM(QUANTITY) "구매_수량", COUNT(PNAME) "상품_종류_수"
+  FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+ WHERE B.CUSTOMID = C.CUSTOM_ID
+   AND B.PCODE = P.PCODE
+   AND BUY_DATE >= '24/01/01'
+HAVING SUM(QUANTITY) >= 3
+ GROUP BY NAME, QUANTITY, PNAME
+ ORDER BY 구매_수량 DESC;
+    
+    
 --2. TBL_CUSTOM 테이블에서 나이(AGE)가 30세 이상인 고객 중. 
     -- 이메일 주소가 ''korea.com' 도메인을 포함하는 고객의 
     -- CUSTOM_ID, NAME, EMAIL, AGE와 해당 고객들이 최근 구매한 날짜(BUY_DATE)를 출력하고, 
@@ -316,10 +385,9 @@ SELECT NAME, EMAIL, SUM(PRICE*QUANTITY) "총구매_가격"
    AND B.PCODE = P.PCODE
 HAVING SUM(PRICE * QUANTITY) >= 100000
  GROUP BY NAME, EMAIL;
-   
-
-   
-
-
-
+ 
+ SELECT *
+     FROM TBL_BUY B, TBL_CUSTOM C, TBL_PRODUCT P
+ WHERE B.CUSTOMID = C.CUSTOM_ID
+   AND B.PCODE = P.PCODE;
 
