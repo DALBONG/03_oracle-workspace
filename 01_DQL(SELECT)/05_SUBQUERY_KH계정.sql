@@ -144,6 +144,17 @@ JOIN DEPARTMENT D ON E.DEPT_CODE = D.DEPT_ID
     AND EMP_NAME = (SELECT EMP_NAME
                     FROM EMPLOYEE
                     WHERE EMP_NAME LIKE '_지연%');
+                    
+-- 전지연 사원과 같은 부서원들의 사번, 이름, 번호, 
+ -- 입사일, 부서명 (전지연 제외)
+SELECT EMP_ID, EMP_NAME, PHONE, HIRE_DATE, DEPT_TITLE
+  FROM EMPLOYEE E, DEPARTMENT D
+ WHERE E.DEPT_CODE = D.DEPT_ID
+   AND DEPT_CODE = (SELECT DEPT_CODE
+                      FROM EMPLOYEE
+					 WHERE EMP_NAME = '전지연')
+   AND EMP_NAME != '전지연';
+                                        
 
 --======================================================================                    
 /*
@@ -211,6 +222,17 @@ AND SALARY > (SELECT MIN(SALARY)
                 FROM EMPLOYEE E, JOB J
                 WHERE E.JOB_CODE = J.JOB_CODE
                 AND JOB_NAME = '과장');
+
+SELECT EMP_ID, EMP_NAME, JOB_NAME, SALARY
+  FROM EMPLOYEE E, JOB J
+ WHERE E.JOB_CODE = J.JOB_CODE
+   AND JOB_NAME = '과장'
+   AND SALARY <= ANY (SELECT SALARY
+                    FROM EMPLOYEE E, JOB J
+                 WHERE E.JOB_CODE = J.JOB_CODE
+                    AND JOB_NAME = '대리');
+                
+                
                 
 -- 3) 과장 직급임에도, 차장 직급인 사원들의 모든 급여보다도 더 많이 받는 사원들의 사번, 사원명, 직급명, 급여
 SELECT EMP_ID, EMP_NAME, JOB_NAME, SALARY
