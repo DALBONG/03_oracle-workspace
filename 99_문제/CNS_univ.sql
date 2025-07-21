@@ -347,6 +347,7 @@ SELECT C.CLASS_NO, CLASS_NAME, AVG(POINT)
  WHERE D.DEPARTMENT_NO = C.DEPARTMENT_NO
    AND C.CLASS_NO = G.CLASS_NO
    AND DEPARTMENT_NAME = '환경조경학과'
+   AND C.CLASS_TYPE LIKE '%전공%'
  GROUP BY C.CLASS_NO, CLASS_NAME;
  
 -- 17. 춘 기술대학교에 다니고 있는 최경희 학생과 같은 과 학생들의 이름과 주소를 출력하는 SQL 문을 작성하시오.
@@ -370,4 +371,104 @@ SELECT STUDENT_NAME, STUDENT_NO
  
 
 -- 19. 춘 기술대학교의 "홖경조경학과"가 속핚 같은 계열 학과들의 학과 별 젂공과목 평점을 파악하기 위핚 적젃핚 SQL 문을 찾아내시오. 
-    -- 단, 출력헤더는 "계열 학과명", "젂공평점"으로 표시되도록 하고, 평점은 소수점 핚 자리까지맊 반올림하여 표시되도록 핚다.
+    -- 단, 출력헤더는 "계열 학과명", "젂공평점"으로 표시되도록 하고, 평점은 소수점 핚 자리까지맊 반올림하여 표시되도록 핚다
+SELECT DEPARTMENT_NAME "계열_학과명", ROUND(AVG(POINT), 1) "전공 평점"
+  FROM TB_DEPARTMENT D, TB_CLASS C, TB_GRADE G
+ WHERE D.DEPARTMENT_NO = C.DEPARTMENT_NO
+   AND C.CLASS_NO = G.CLASS_NO
+   AND CLASS_TYPE LIKE '%전공%'
+   AND CATEGORY = (SELECT CATEGORY
+                     FROM TB_DEPARTMENT
+                    WHERE DEPARTMENT_NAME = '환경조경학과')
+ GROUP BY DEPARTMENT_NAME, CATEGORY;
+ 
+ 
+ --================================DDL 문제======================================
+ --================================DDL 문제======================================
+ --================================DDL 문제======================================
+ --================================DDL 문제======================================
+ --================================DDL 문제======================================
+
+-- 1. 계열 정보를 저장핛 카테고리 테이블을 맊들려고 핚다. 다음과 같은 테이블을 작성하시오
+CREATE TABLE TB_CATEGORY(
+    NAME VARCHAR2(10),
+    USE_YN CHAR(1) DEFAULT 'Y' CHECK(USE_YN IN('Y', 'N'))
+);
+
+-- 2. 과목 구분을 저장핛 테이블을 맊들려고 핚다. 다음과 같은 테이블을 작성하시오.
+CREATE TABLE TB_CLASS_TYPE(
+    NO VARCHAR2(5) CONSTRAINT NO_PK PRIMARY KEY,
+    NAME VARCHAR2(10)
+);
+
+-- 3. TB_CATAGORY 테이블의 NAME 컬럼에 PRIMARY KEY 를 생성하시오.
+  -- (KEY 이름을 생성하지 않아도 무방함. 맊일 KEY 이를 지정하고자 핚다면 이름은 본인이 알아서 적당핚 이름을 사용핚다.)
+ALTER TABLE TB_CATEGORY MODIFY NAME CONSTRAINT NAME_PK PRIMARY KEY;
+
+-- 4. TB_CLASS_TYPE 테이블의 NAME 컬럼에 NULL 값이 들어가지 않도록 속성을 변경하시오.
+ALTER TABLE TB_CLASS_TYPE MODIFY NAME CONSTRAINT NAME_NN NOT NULL;
+
+-- 5. 두 테이블에서 컬럼 명이 NO 인 것은 기존 타입을 유지하면서 크기는 10 으로, 
+  -- 컬럼명이 NAME 인 것은 마찪가지로 기존 타입을 유지하면서 크기 20 으로 변경하시오.
+
+ALTER TABLE TB_CLASS_TYPE
+    MODIFY NO VARCHAR2(10)
+    MODIFY NAME VARCHAR2(20);
+    
+ALTER TABLE TB_CATEGORY
+    MODIFY NAME VARCHAR2(20);
+    
+-- 6. 두 테이블의 NO 컬럼과 NAME 컬럼의 이름을 각 각 TB_ 를 제외핚 테이블 이름이 
+    -- 앞에 붙은 형태로 변경핚다.        (ex. CATEGORY_NAME)
+SELECT * FROM TB_CATEGORY;
+ALTER TABLE TB_CATEGORY RENAME COLUMN GATEGORY_NAME TO CATEGORY_NAME;
+                                        --> 오타로 인한 재 변경..
+SELECT * FROM TB_CLASS_TYPE;
+ALTER TABLE TB_CLASS_TYPE RENAME COLUMN NO TO CLASS_TYPE_NO;
+ALTER TABLE TB_CLASS_TYPE RENAME COLUMN NAME TO CLASS_TYPE_NAME;
+
+-- 7. TB_CATAGORY 테이블과 TB_CLASS_TYPE 테이블의 PRIMARY KEY 이름을 다음과 같이 변경하시오.
+    -- Primary Key 의 이름은 ?PK_ + 컬럼이름?으로 지정하시오. (ex. PK_CATEGORY_NAME)
+ALTER TABLE TB_CATEGORY RENAME CONSTRAINT NAME_PK TO PK_CATEGORY_NAME;
+ALTER TABLE TB_CLASS_TYPE RENAME CONSTRAINT NO_PK TO PK_CLASS_TYPE_NO;
+
+
+-- 8. 다음과 같은 INSERT 문을 수행핚다.
+
+INSERT INTO TB_CATEGORY VALUES ('공학','Y');
+INSERT INTO TB_CATEGORY VALUES ('자연과학','Y');
+INSERT INTO TB_CATEGORY VALUES ('의학','Y');
+INSERT INTO TB_CATEGORY VALUES ('예체능','Y');
+INSERT INTO TB_CATEGORY VALUES ('인문사회','Y');
+COMMIT; 
+
+-- 9.TB_DEPARTMENT 의 CATEGORY 컬럼이 TB_CATEGORY 테이블의 CATEGORY_NAME 컬럼을 
+  -- 부모 값으로 참조하도록 FOREIGN KEY 를 지정하시오. 이 때 KEY 이름은
+  -- FK_테이블이름_컬럼이름으로 지정핚다. (ex. FK_DEPARTMENT_CATEGORY )
+  
+ALTER TABLE TB_DEPARTMENT ADD FOREIGN KEY(CATEGORY) REFERENCES TB_CATEGORY(CATEGORY_NAME);
+    --제약조건 명 삽입 하지 않아 수정
+ALTER TABLE TB_DEPARTMENT RENAME  CONSTRAINT SYS_C007079 TO FK_DEPARTMENT_CATEGORY;
+
+-- 10. 춘 기술대학교 학생들의 정보맊이 포함되어 있는 학생일반정보 VIEW 를 맊들고자 핚다. 
+    -- 아래 내용을 참고하여 적젃핚 SQL 문을 작성하시오.
+
+
+
+
+ --================================DML 문제======================================
+ --================================DML 문제======================================
+ --================================DML 문제======================================
+ --================================DML 문제======================================
+ --================================DML 문제======================================
+
+-- 1. 과목유형 테이블(TB_CLASS_TYPE)에 아래와 같은 데이터를 입력하시오.
+INSERT INTO TB_CLASS_TYPE VALUES (01, '전공필수');
+INSERT INTO TB_CLASS_TYPE VALUES (02, '전공선택');
+INSERT INTO TB_CLASS_TYPE VALUES (03, '교양필수');
+INSERT INTO TB_CLASS_TYPE VALUES (04, '교양선택');
+INSERT INTO TB_CLASS_TYPE VALUES (05, '논문지도');
+
+-- 2. 춘 기술대학교 학생들의 정보가 포함되어 있는 학생일반정보 테이블을 맊들고자 핚다. 
+  -- 아래 내용을 참고하여 적젃핚 SQL 문을 작성하시오. (서브쿼리를 이용하시오) 
+CREATE TABLE TB_학생일반정보 ADD COLUMN 학번 ;
