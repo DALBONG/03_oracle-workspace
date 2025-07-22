@@ -337,7 +337,6 @@ FROM (SELECT EMP_ID, EMP_NAME, (SALARY+SALARY*NVL(BONUS, 0))*12 "연봉"
 FROM EMPLOYEE)
 WHERE 연봉 >= 30000000;
 
-
 --> 인라인 뷰를 주로 사용하는 예 : TOP-N 분석 (상위 N개만 보여주고 싶을 때)
 -- * ROWNUM : 오라클에서 제공하는 컬럼으로, 조회된 순서대로 1부터 순번을 부여해주는 컬럼
 
@@ -354,7 +353,6 @@ FROM (SELECT EMP_NAME, SALARY, DEPT_CODE
         FROM EMPLOYEE
         ORDER BY SALARY DESC)
 WHERE ROWNUM <= 5;
-
 
 
 SELECT ROWNUM, * -- *은 컬럼과 사용X 
