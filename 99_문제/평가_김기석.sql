@@ -70,31 +70,16 @@ SELECT WRITER_NM, MIN(ISSUE_DATE) "최초발행일"
   JOIN TB_BOOK USING (BOOK_NO)
  GROUP BY WRITER_NM;
  
-UPDATE TB_WRITER
-   SET (WRITER_NM, ISSUE_DATE) = (SELECT WRITER_NM, MIN(ISSUE_DATE) "최초발행일"
-                                    FROM TB_WRITER
-                                    JOIN TB_BOOK_AUTHOR USING (WRITER_NO)
-                                    JOIN TB_BOOK USING (BOOK_NO)
-                                   GROUP BY WRITER_NM);
-
-
-/* 답
-
 UPDATE TB_WRITER W
-SET W.REGIST_DATE = (
-    SELECT MIN(B.ISSUE_DATE)    
-    FROM TB_BOOK_AUTHOR BA
-    JOIN TB_BOOK B ON BA.BOOK_NO = B.BOOK_NO
-    WHERE BA.WRITER_NO = W.WRITER_NO
-)
-WHERE W.REGIST_DATE IS NULL;
-
-SELECT WRITER_NM, REGIST_DATE FROM TB_WRITER;
+   SET REGIST_DATE = (SELECT MIN(B.ISSUE_DATE)
+                        FROM TB_BOOK_AUTHOR BA
+                        JOIN TB_BOOK B USING (BOOK_NO)
+                       WHERE BA.WRITER_NO = W.WRITER_NO
+                      );
+ 
+ SELECT REGIST_DATE FROM TB_WRITER;
 
 COMMIT;
-
-*/    
- 
 
    
 -- 10. 현재 도서저자 정보 테이블은 저서와 번역서를 구분 없이 관리하고 있다. 앞으로는 번역서는 따로 관리하려고 한다. 
@@ -195,22 +180,51 @@ SELECT COMPOSE_TYPE
 
  -- 17. 서울지역 작가 모임을 개최하려고 한다. 사무실이 서울이고, 
    -- 사무실 전화 번호 국번이 3자리인 작가의 이름과 사무실 전화 번호를 표시하는 SQL 구문을 작성하시오.
-   
+SELECT WRITER_NM, OFFICE_TELNO
+  FROM TB_WRITER
+ WHERE OFFICE_TELNO LIKE '02%'
+   AND OFFICE_TELNO LIKE '%-___-%'; 
+
    
    
 -- 18. 2006년 1월 기준으로 등록된 지 31년 이상 된 작가 이름을 이름순으로 표시하는 SQL 구문을 작성하시오.
-
+SELECT WRITER_NM, MONTHS_BETWEEN('06/01/01', REGIST_DATE)
+  FROM TB_WRITER
+ WHERE MONTHS_BETWEEN('06/01/01', REGIST_DATE) >= 372
+ ORDER BY WRITER_NM ASC;
+ 
+SELECT WRITER_NM
+  FROM (SELECT WRITER_NM, MONTHS_BETWEEN('06/01/01', REGIST_DATE)
+          FROM TB_WRITER
+         WHERE MONTHS_BETWEEN('06/01/01', REGIST_DATE) >= 372
+         ORDER BY WRITER_NM ASC);  --> 우선... 10명 나온 값 부터... 16명은 추후에..
 
 
 -- 19. 요즘 들어 다시금 인기를 얻고 있는 '황금가지' 출판사를 위한 기획전을 열려고 한다. 
   -- '황금가지' 출판사에서 발행한 도서 중 재고 수량이 10권 미만인 도서명과 가격, 재고상태를 표시하는 SQL 구문을 작성하시오. 
   -- 재고 수량이 5권 미만인 도서는 ‘추가주문필요’로, 나머지는 ‘소량보유’로 표시하고, 
   -- 재고수량이 많은 순, 도서명 순으로 표시되도록 한다.
-  
- 
+SELECT BOOK_NM "도서명"
+       , PRICE "가격"
+       , CASE WHEN STOCK_QTY < 5 THEN '추가주문 필요'
+              ELSE '소량 보유'
+         END "재고상태"
+  FROM TB_BOOK
+ WHERE PUBLISHER_NM = '황금가지'
+   AND STOCK_QTY < 10
+ ORDER BY STOCK_QTY DESC, 도서명 ASC;
  
 -- 20. '아타트롤' 도서 작가와 역자를 표시하는 SQL 구문을 작성하시오. 
    -- (결과 헤더는 ‘도서명’,’저자’,’역자’로 표시할 것)
+SELECT BOOK_NO
+  FROM TB_BOOK
+ WHERE BOOK_NM = '아타트롤';
+
+SELECT *
+  FROM TB_BOOK_AUTHOR
+ WHERE BOOK_NO = (SELECT BOOK_NO
+                  FROM TB_BOOK
+                 WHERE BOOK_NM = '아타트롤');
    
 
 
@@ -218,7 +232,12 @@ SELECT COMPOSE_TYPE
    -- 도서명, 재고 수량, 원래 가격, 20% 인하 가격을 표시하는 SQL 구문을 작성하시오. 
    -- (결과 헤더는 “도서명”, “재고 수량”, “가격(Org)”, “가격(New)”로 표시할 것. 
    -- 재고 수량이 많은 순, 할인 가격이 높은 순, 도서명 순으로 표시되도록 할 것)
- 
+SELECT BOOK_NM "도서명", STOCK_QTY "재고수량", PRICE "가격(Org)", PRICE*0.8 "가격(New)"
+  FROM TB_BOOK
+ WHERE STOCK_QTY >= 90
+HAVING MONTHS_BETWEEN(SYSDATE, MIN(ISSUE_DATE)) >= 360
+ GROUP BY BOOK_NM, STOCK_QTY, PRICE
+ ORDER BY 재고수량 DESC, '가격(New)' DESC, 도서명 ASC;  ---> 흠.. 시간이 없으므로 일단... 
  
  
  
